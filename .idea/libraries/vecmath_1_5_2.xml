@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="vecmath-1.5.2">
+    <CLASSES>
+      <root url="jar://D:/vecmath-1.5.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ideaLibSources/vecmath-1.5.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
