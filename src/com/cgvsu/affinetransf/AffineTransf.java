@@ -101,29 +101,29 @@ public class AffineTransf {
                 R.mul(Z);
             }
             case ZXY -> {
-                R.mul(Z);
-                R.mul(X);
                 R.mul(Y);
+                R.mul(X);
+                R.mul(Z);
             }
             case YZX -> {
-                R.mul(Y);
-                R.mul(Z);
                 R.mul(X);
+                R.mul(Z);
+                R.mul(Y);
             }
             case YXZ -> {
-                R.mul(Y);
-                R.mul(X);
                 R.mul(Z);
+                R.mul(X);
+                R.mul(Y);
             }
             case XZY -> {
-                R.mul(X);
-                R.mul(Z);
                 R.mul(Y);
+                R.mul(Z);
+                R.mul(X);
             }
             case XYZ -> {
-                R.mul(X);
-                R.mul(Y);
                 R.mul(Z);
+                R.mul(Y);
+                R.mul(X);
             }
             default -> R.mul(1);
         }
