@@ -52,7 +52,7 @@ class AffineTransfTest {
     @Test
     void transformVertex04a() {
         AffineTransf A = new AffineTransf();
-        A.setOr(OrderRotation.ZXY);
+        A.setOr(OrderRotation.YXZ);
         A.setRz(-45);
         A.setRy(-90);
         Vector3f V = new Vector3f(1,0,0);

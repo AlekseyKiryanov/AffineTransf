@@ -9,14 +9,18 @@ import java.util.ArrayList;
 
 public class AffineTransf {
 
+    //Перечесисление отвечающее за порядок поворотов в каждой из плоскостей
     private OrderRotation or = OrderRotation.ZYX;
+    //Параметры масштабирования
     private float Sx = 1;
     private float Sy = 1;
     private float Sz = 1;
+    //Параметры поворота
+    //УГЛЫ ПОВОРОТА ЗАДАЮТСЯ ПО ЧАСОВОЙ СРЕЛКЕ В ГРАДУСАХ
     private float Rx = 0;
     private float Ry = 0;
     private float Rz = 0;
-    //УГЛЫ ПОВОРОТА ЗАДАЮТСЯ ПО ЧАСОВОЙ СРЕЛКЕ
+    //Параметры переноса
     private float Tx = 0;
     private float Ty = 0;
     private float Tz = 0;
@@ -51,22 +55,23 @@ public class AffineTransf {
     }
 
     private void calculateA() {
-
+        //Матрица поворота задается единичной
         R = new Matrix4f(1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1);
 
+        //Вычисление матрицы переноса
         T = new Matrix4f(1, 0, 0, Tx,
                 0, 1, 0, Ty,
                 0, 0, 1, Tz,
                 0, 0, 0, 1);
-
+        //Вычисление матрицы масштабирования
         S = new Matrix4f(Sx, 0, 0, 0,
                 0, Sy, 0, 0,
                 0, 0, Sz, 0,
                 0, 0, 0, 1);
-
+        //Вычисление тригонометрических функций
         float sinA = (float) Math.sin(Rx * Math.PI / 180);
         float cosA = (float) Math.cos(Rx * Math.PI / 180);
 
@@ -76,6 +81,7 @@ public class AffineTransf {
         float sinY = (float) Math.sin(Rz * Math.PI / 180);
         float cosY = (float) Math.cos(Rz * Math.PI / 180);
 
+        //Матрицы поворота в каждой из плоскостей
         Matrix4f Z = new Matrix4f(cosY, sinY, 0, 0,
                 -sinY, cosY, 0, 0,
                 0, 0, 1, 0,
@@ -92,8 +98,10 @@ public class AffineTransf {
                 0, -sinA, cosA, 0,
                 0, 0, 0, 1);
 
+        //Матрица афинных преобразований принимается равной единице
         A = new Matrix4f(T);
 
+        //Перемножение матриц поворота согласно их порядку
         switch (or) {
             case ZYX -> {
                 R.mul(X);
@@ -127,7 +135,7 @@ public class AffineTransf {
             }
             default -> R.mul(1);
         }
-
+        //Вычисление матрицы афинных преобразований
         A.mul(R);
         A.mul(S);
     }
@@ -140,6 +148,7 @@ public class AffineTransf {
         Model rez = new Model();
         rez.polygons = new ArrayList<>(m.polygons);
         rez.textureVertices = new ArrayList<>(m.textureVertices);
+        //Полигоны и текстурные вершины не изменяются
 
         rez.vertices = new ArrayList<>();
         for (Vector3f v : m.vertices) {
@@ -148,6 +157,7 @@ public class AffineTransf {
 
         for (Vector3f v : m.normals) {
             rez.normals.add(VectorMath.mullMatrix4fOnVector3f(R,v));
+            //На преобразование нормалей влимяет только матрица поворота
         }
 
         return rez;

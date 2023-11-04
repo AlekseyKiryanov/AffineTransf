@@ -14,7 +14,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 
-        Path fileName = Path.of("D:\\tatraT6B5.obj");
+        Path fileName = Path.of("D:\\cube.obj");
         String fileContent = Files.readString(fileName);
 
 
@@ -28,7 +28,16 @@ public class Main {
         System.out.println("Модель изменена");
 
 
-        ObjWriter.write("D:\\tatraT6B5_1.obj",new_model);
+        ObjWriter.write("D:\\cube_1.obj",new_model);
+        System.out.println("Модель сохранена");
+
+        AffineTransf AT2 = new AffineTransf(OrderRotation.YZX, 1.2F,0.55F,1.3F,15,45,5,0.4F,0.2F,0F);
+
+        Model new_model2 = AT2.transformModel(new_model);
+        System.out.println("Модель изменена");
+
+
+        ObjWriter.write("D:\\cube.obj",new_model2);
         System.out.println("Модель сохранена");
     }
 }
