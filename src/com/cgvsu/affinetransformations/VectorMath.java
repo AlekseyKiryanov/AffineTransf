@@ -1,4 +1,4 @@
-package com.cgvsu.affinetransf;
+package com.cgvsu.affinetransformations;
 
 import com.cgvsu.math.Vector3f;
 

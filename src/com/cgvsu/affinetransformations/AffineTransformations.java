@@ -1,16 +1,15 @@
-package com.cgvsu.affinetransf;
+package com.cgvsu.affinetransformations;
 
 
 import com.cgvsu.math.Vector3f;
 import com.cgvsu.model.Model;
 
 import javax.vecmath.Matrix4f;
-import java.util.ArrayList;
 
-public class AffineTransf {
+public class AffineTransformations {
 
     //Перечесисление отвечающее за порядок поворотов в каждой из плоскостей
-    private OrderRotation or = OrderRotation.ZYX;
+    private RotationOrder rotationOrder = RotationOrder.ZYX;
     //Параметры масштабирования
     private float Sx = 1;
     private float Sy = 1;
@@ -25,22 +24,33 @@ public class AffineTransf {
     private float Ty = 0;
     private float Tz = 0;
 
-    private Matrix4f R = new Matrix4f(1, 0, 0, 0,
+    private Matrix4f rotationMatrix = new Matrix4f(1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1);
-    private Matrix4f S;
-    private Matrix4f T;
-    private Matrix4f A = new Matrix4f(1, 0, 0, 0,
+    private Matrix4f scaleMatrix = new Matrix4f(1, 0, 0, 0,
+                                           0, 1, 0, 0,
+                                           0, 0, 1, 0,
+                                           0, 0, 0, 1);
+    private Matrix4f translateMatrix = new Matrix4f(1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1);;
+    private Matrix4f affineMatrix = new Matrix4f(1, 0, 0, 0,
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1);
 
-    public AffineTransf() {
+    private Matrix4f normalsTransformMatrix = new Matrix4f(1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1);
+
+    public AffineTransformations() {
     }
 
-    public AffineTransf(OrderRotation or, float sx, float sy, float sz, float rx, float ry, float rz, float tx, float ty, float tz) {
-        this.or = or;
+    public AffineTransformations(RotationOrder rotationOrder, float sx, float sy, float sz, float rx, float ry, float rz, float tx, float ty, float tz) {
+        this.rotationOrder = rotationOrder;
         Sx = sx;
         Sy = sy;
         Sz = sz;
@@ -56,18 +66,18 @@ public class AffineTransf {
 
     private void calculateA() {
         //Матрица поворота задается единичной
-        R = new Matrix4f(1, 0, 0, 0,
+        rotationMatrix = new Matrix4f(1, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1, 0,
                 0, 0, 0, 1);
 
         //Вычисление матрицы переноса
-        T = new Matrix4f(1, 0, 0, Tx,
+        translateMatrix = new Matrix4f(1, 0, 0, Tx,
                 0, 1, 0, Ty,
                 0, 0, 1, Tz,
                 0, 0, 0, 1);
         //Вычисление матрицы масштабирования
-        S = new Matrix4f(Sx, 0, 0, 0,
+        scaleMatrix = new Matrix4f(Sx, 0, 0, 0,
                 0, Sy, 0, 0,
                 0, 0, Sz, 0,
                 0, 0, 0, 1);
@@ -98,78 +108,77 @@ public class AffineTransf {
                 0, -sinA, cosA, 0,
                 0, 0, 0, 1);
 
-        //Матрица афинных преобразований принимается равной единице
-        A = new Matrix4f(T);
+
 
         //Перемножение матриц поворота согласно их порядку
-        switch (or) {
+        switch (rotationOrder) {
             case ZYX -> {
-                R.mul(X);
-                R.mul(Y);
-                R.mul(Z);
+                rotationMatrix.mul(X);
+                rotationMatrix.mul(Y);
+                rotationMatrix.mul(Z);
             }
             case ZXY -> {
-                R.mul(Y);
-                R.mul(X);
-                R.mul(Z);
+                rotationMatrix.mul(Y);
+                rotationMatrix.mul(X);
+                rotationMatrix.mul(Z);
             }
             case YZX -> {
-                R.mul(X);
-                R.mul(Z);
-                R.mul(Y);
+                rotationMatrix.mul(X);
+                rotationMatrix.mul(Z);
+                rotationMatrix.mul(Y);
             }
             case YXZ -> {
-                R.mul(Z);
-                R.mul(X);
-                R.mul(Y);
+                rotationMatrix.mul(Z);
+                rotationMatrix.mul(X);
+                rotationMatrix.mul(Y);
             }
             case XZY -> {
-                R.mul(Y);
-                R.mul(Z);
-                R.mul(X);
+                rotationMatrix.mul(Y);
+                rotationMatrix.mul(Z);
+                rotationMatrix.mul(X);
             }
             case XYZ -> {
-                R.mul(Z);
-                R.mul(Y);
-                R.mul(X);
+                rotationMatrix.mul(Z);
+                rotationMatrix.mul(Y);
+                rotationMatrix.mul(X);
             }
-            default -> R.mul(1);
+            default -> rotationMatrix.mul(1);
         }
         //Вычисление матрицы афинных преобразований
-        A.mul(R);
-        A.mul(S);
+        affineMatrix = new Matrix4f(translateMatrix);
+        affineMatrix.mul(rotationMatrix);
+        affineMatrix.mul(scaleMatrix);
+
+        normalsTransformMatrix = new Matrix4f(rotationMatrix);
+        normalsTransformMatrix.mul(scaleMatrix);
     }
 
     public Vector3f transformVertex(Vector3f v) {
-        return VectorMath.mullMatrix4fOnVector3f(A, v);
+        return VectorMath.mullMatrix4fOnVector3f(affineMatrix, v);
     }
 
-    public Model transformModel(Model m) {
-        Model rez = new Model();
-        rez.polygons = new ArrayList<>(m.polygons);
-        rez.textureVertices = new ArrayList<>(m.textureVertices);
-        //Полигоны и текстурные вершины не изменяются
+    public Model transformModel(Model model) {
 
-        rez.vertices = new ArrayList<>();
-        for (Vector3f v : m.vertices) {
-            rez.vertices.add(transformVertex(v));
+
+        for (int i = 0; i < model.vertices.size(); i++) {
+            model.vertices.set(i, transformVertex(model.vertices.get(i)));
         }
 
-        for (Vector3f v : m.normals) {
-            rez.normals.add(VectorMath.mullMatrix4fOnVector3f(R,v));
-            //На преобразование нормалей влимяет только матрица поворота
+        for (int i = 0; i < model.normals.size(); i++) {
+            model.normals.set(i, VectorMath.mullMatrix4fOnVector3f(normalsTransformMatrix, model.normals.get(i)));
         }
 
-        return rez;
+        return model;
     }
 
 
-    public OrderRotation getOr() {
-        return or;
+
+    public RotationOrder getRotationOrder() {
+        return rotationOrder;
     }
 
-    public void setOr(OrderRotation or) {
-        this.or = or;
+    public void setRotationOrder(RotationOrder rotationOrder) {
+        this.rotationOrder = rotationOrder;
         calculateA();
     }
 
@@ -254,19 +263,19 @@ public class AffineTransf {
         calculateA();
     }
 
-    public Matrix4f getR() {
-        return R;
+    public Matrix4f getRotationMatrix() {
+        return rotationMatrix;
     }
 
-    public Matrix4f getS() {
-        return S;
+    public Matrix4f getScaleMatrix() {
+        return scaleMatrix;
     }
 
-    public Matrix4f getT() {
-        return T;
+    public Matrix4f getTranslateMatrix() {
+        return translateMatrix;
     }
 
-    public Matrix4f getA() {
-        return A;
+    public Matrix4f getAffineMatrix() {
+        return affineMatrix;
     }
 }
